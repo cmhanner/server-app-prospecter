@@ -21,7 +21,7 @@ let apps = [
     {
         "_id": 1,
         "name": "Bank App",
-        "image": "images_json/finance-image.jpg",
+        "image": "finance-image.jpg",
         "company": "Da Bank",
         "industry": "Finance",
         "rating": 2.0,
@@ -35,7 +35,7 @@ let apps = [
     {
         "_id": 2,
         "name": "Business App",
-        "image": "images_json/business-image.jpg",
+        "image": "business-image.jpg",
         "company": "Busy Business",
         "industry": "Consulting",
         "rating": 2.5,
@@ -49,7 +49,7 @@ let apps = [
     {
         "_id": 3,
         "name": "Car App",
-        "image": "images_json/car-image.jpg",
+        "image": "car-image.jpg",
         "company": "Vroom Vrrom",
         "industry": "Automotive",
         "rating": 1.5,
@@ -63,7 +63,7 @@ let apps = [
     {
         "_id": 4,
         "name": "Food App",
-        "image": "images_json/restraunt-image.jpg",
+        "image": "restraunt-image.jpg",
         "company": "The Dining Gals",
         "industry": "Food",
         "rating": 4.0,
@@ -77,7 +77,7 @@ let apps = [
     {
         "_id": 5,
         "name": "Fitness App",
-        "image": "images_json/fitness-image.jpg",
+        "image": "fitness-image.jpg",
         "company": "Strong Folk",
         "industry": "Fitness",
         "rating": 3.5,
@@ -91,7 +91,7 @@ let apps = [
     {
         "_id": 6,
         "name": "Logistics App",
-        "image": "images_json/logistics-image.jpg",
+        "image": "logistics-image.jpg",
         "company": "Major Trucking",
         "industry": "Logistics",
         "rating": 2.0,
@@ -105,7 +105,7 @@ let apps = [
     {
         "_id": 7,
         "name": "Shopping App",
-        "image": "images_json/shopbag-image.jpg",
+        "image": "shopbag-image.jpg",
         "company": "Shoppy Stuff",
         "industry": "Retail",
         "rating": 2.5,
@@ -119,7 +119,7 @@ let apps = [
     {
         "_id": 8,
         "name": "Travel App",
-        "image": "images_json/travel-image.jpg",
+        "image": "travel-image.jpg",
         "company": "Coast 2 Coast",
         "industry": "Travel",
         "rating": 3.0,
