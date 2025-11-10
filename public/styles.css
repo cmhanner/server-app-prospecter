@@ -1,4 +1,30 @@
+:root {
+  --primaryColor: #0E0F33;
+  --secondaryColor: #B8B8D9;
+  --thirdColor: #81B337;
+  --pageChangerO: #416806;
+    
+}
+
 body {
-    background-color: bisque;
+    background-color:var(--secondaryColor);
+    font-family: Arial, Helvetica, sans-serif;
+    align-items: center;
+}
+
+h1 {
+    background-color: var(--primaryColor);
+    color: white;
+    width: fit-content;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+a {
+    font-size: 30px;
+    color: var(--primaryColor);
+    background-color: white;
+    padding: 5px;
+    border-radius: 10px;
 }
 
