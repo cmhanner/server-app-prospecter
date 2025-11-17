@@ -1,6 +1,7 @@
 const express = require ("express");
 const cors = require("cors");
 const multer = require("multer");
+const Joi = require("joi");
 const app = express();
 app.use(express.static("public"));
 app.use(express.json());
@@ -81,7 +82,7 @@ let apps = [
         "company": "Strong Folk",
         "industry": "Fitness",
         "rating": 3.5,
-        "rating_count": "42",
+        "rating_count": 42,
         "developer": "Foundational Code",
         "note": "I like how it keeps track of my calories, but  the timer needs work",
         "app_store_url": "https://apps.apple.com/us/app/...",
@@ -139,10 +140,70 @@ app.get("/api/apps/", (req, res) => {
 });
 
 //  To get a Single App
-app.get("/api/houses/:id", (req, res)=>{
-    const app = apps.find((app)=>app._id === parseInt(req.params.id));
-    res.send(app);
+app.get("/api/apps/:id", (req, res)=>{
+    const appItem = apps.find((app)=>app._id === parseInt(req.params.id));
+    res.send(appItem);
 });
+
+app.post("/api/apps", upload.single("image"), (req, res) => {
+    console.log ("In Post /api/apps");
+    console.log("Body:", req.body);
+    console.log("File:", req.file);
+
+  if (!req.body) {
+    // Nothing parsed into req.body – wrong content-type or bad client request
+    return res
+      .status(400)
+      .send("No form fields received. Make sure you are sending FormData.");
+  }
+
+    const result = validateApp(req.body);
+
+    if (result.error) {
+        console.log("Error adding User app");
+        return res.status(400).send(result.error.details[0].message);
+       
+    }
+
+
+    const newApp = {
+        _id: apps.length + 1,
+        name: req.body.name,
+        company: req.body.company,
+        industry: req.body.industry,
+        rating: Number(req.body.rating),
+        rating_count: Number(req.body.rating_count),
+        developer: req.body.developer,
+        note: req.body.note,
+        app_store_url: req.body.app_store_url,
+        website_url: req.body.website_url,
+        image: req.file ? req.file.filename : "app-placement-image.jpg"
+    }
+
+    if (req.file) {
+        newApp.image = req.file.filename
+    }
+
+    apps.push(newApp);
+    res.status(200).send(newApp);
+})
+
+const validateApp = (app) => {
+    const schema = Joi.object ({
+            _id: Joi.allow(""),
+            name: Joi.string().min(1).required(),
+            company: Joi.string().min(2).required(),
+            industry: Joi.string().min(3).required(),
+            rating: Joi.number().required().min(1).max(5),
+            rating_count: Joi.number().required().min(1),
+            developer: Joi.string().min(1).required(),
+            note: Joi.string().min(1).required(),
+            app_store_url: Joi.string().min(1).required(),
+            website_url: Joi.string().min(1),  
+    })
+
+    return schema.validate(app);
+}
 
 app.listen(3001, () => {
     console.log("Server is up and running");
