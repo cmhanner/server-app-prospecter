@@ -188,6 +188,59 @@ app.post("/api/apps", upload.single("image"), (req, res) => {
     res.status(200).send(newApp);
 })
 
+app.put("/api/apps/:id", upload.single("image"), (req, res) =>{
+    console.log(`App ${req.params.id} is trying to be editied`);
+    console.log (req.body)
+
+    const appItem = apps.find(app=>app._id === parseInt(req.params.id));
+
+    if (!appItem) {
+        res.status(404).send("The app you wanted to edit is unavailable");
+        return;
+    }
+
+    const isValidEdit = validateApp(req.body);
+
+    if (isValidEdit.error) {
+        console.log("Invalid info when editing")
+        res.status(400).send(isValidEdit.error.details[0].message)
+        return;
+    }
+
+    appItem.name = req.body.name;
+    appItem.company = req.body.company;
+    appItem.industry = req.body.industry;
+    appItem.rating = Number(req.body.rating);
+    appItem.rating_count = Number(req.body.rating_count);
+    appItem.developer = req.body.developer;
+    appItem.note = req.body.note;
+    appItem.app_store_url = req.body.app_store_url;
+    appItem.website_url = req.body.website_url;
+
+    if (req.file) {
+        appItem.image = req.file.filename
+    }
+
+    res.status(200).send(appItem);
+
+
+
+})
+
+app.delete ("/api/apps/:id", (req, res) => {
+   const appItem = apps.find((app)=>app._id === parseInt(req.params.id));
+
+   if (!appItem) {
+    res.status(404).send("Can't find the app to delete")
+    return;
+   }
+
+   const index = apps.indexOf(appItem);
+   apps.splice(index, 1);
+   res.status(200).send(appItem);
+
+})
+
 const validateApp = (app) => {
     const schema = Joi.object ({
             _id: Joi.allow(""),
