@@ -21,10 +21,10 @@ const upload = multer({ storage: storage });
 
 mongoose 
     .connect(
-        "mongodb+srv://cmhanner:E8AUfgE3717JFt0y@data.ng58qmq.mongodb.net/app-prospecter"
+        "mongodb+srv://chanceforcode_db_user:ChanceDatabaseeePassword@app-prospecter.jt7rd5x.mongodb.net/"
     )
     .then ( () => {
-        console.log("conneceted to MongoDB");
+        console.log("Conneceted to MongoDB");
     })
     .catch( (error) => {
         console.log("Error connecting to MongoDB", error);
