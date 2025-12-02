@@ -1,6 +1,7 @@
 const express = require ("express");
 const cors = require("cors");
 const multer = require("multer");
+const mongoose = require("mongoose");
 const Joi = require("joi");
 const app = express();
 app.use(express.static("public"));
@@ -17,6 +18,33 @@ const storage = multer.diskStorage({
 });
   
 const upload = multer({ storage: storage });
+
+mongoose 
+    .connect(
+
+    )
+    .then ( () => {
+        console.log("conneceted to MongoDB");
+    })
+    .catch( (error) => {
+        console.log("Error connecting to MongoDB", error);
+    });
+
+    // Mongoose already includes the _id field by default
+    const appScheme = new mongoose.Schema({
+        name: String,
+        company: String,
+        industry: String,
+        rating: Number,
+        rating_count: Number,
+        developer: String,
+        note: String,
+        app_store_url: String,
+        website_url: String,
+        image: String
+    })
+//  Gateway to interacting with Database, utilize apps schema 
+const App = mongoose.model("App", appScheme);
 
 let apps = [
     {
@@ -133,31 +161,36 @@ let apps = [
     }
 ]
 
-app.get("/api/apps/", (req, res) => {
-    console.log("in get request");
+app.get("/api/apps/", async (req, res) => {
+    console.log("In Get Request for all Apps.");
+    const apps = await App.find(); //  Retrieve all apps from the database
     res.send(apps);
 
 });
 
 //  To get a Single App
-app.get("/api/apps/:id", (req, res)=>{
-    const appItem = apps.find((app)=>app._id === parseInt(req.params.id));
+app.get("/api/apps/:id", async (req, res)=>{
+    console.log(`In Get Request for single App ${req.params.id}`);
+    // const appItem = apps.find((app)=>app._id === parseInt(req.params.id));
+    const appItem = await App.findOne({_id: id }) //  Retrieve a single app by its ID from the database
     res.send(appItem);
 });
 
-app.post("/api/apps", upload.single("image"), (req, res) => {
+app.post("/api/apps", upload.single("image"), async (req, res) => {
+    const result = validateApp(req.body);
+
     console.log ("In Post /api/apps");
     console.log("Body:", req.body);
     console.log("File:", req.file);
 
   if (!req.body) {
-    // Nothing parsed into req.body – wrong content-type or bad client request
+    // Nothing parsed into req.body wrong content-type or bad client request
     return res
       .status(400)
       .send("No form fields received. Make sure you are sending FormData.");
   }
 
-    const result = validateApp(req.body);
+   
 
     if (result.error) {
         console.log("Error adding User app");
@@ -165,41 +198,53 @@ app.post("/api/apps", upload.single("image"), (req, res) => {
        
     }
 
-
-    const newApp = {
-        _id: apps.length + 1,
+    const app = new App ({
         name: req.body.name,
         company: req.body.company,
         industry: req.body.industry,
-        rating: Number(req.body.rating),
-        rating_count: Number(req.body.rating_count),
+        rating:req.body.rating,
+        rating_count: req.body.rating_count,
         developer: req.body.developer,
         note: req.body.note,
         app_store_url: req.body.app_store_url,
         website_url: req.body.website_url,
-        image: req.file ? req.file.filename : "app-placement-image.jpg"
-    }
+    })
+
+    // const newApp = {
+    //     _id: apps.length + 1,
+    //     name: req.body.name,
+    //     company: req.body.company,
+    //     industry: req.body.industry,
+    //     rating: Number(req.body.rating),
+    //     rating_count: Number(req.body.rating_count),
+    //     developer: req.body.developer,
+    //     note: req.body.note,
+    //     app_store_url: req.body.app_store_url,
+    //     website_url: req.body.website_url,
+    //     image: req.file ? req.file.filename : "app-placement-image.jpg"
+    // }
 
     if (req.file) {
-        newApp.image = req.file.filename
+        app.image = req.file.filename
     }
 
-    apps.push(newApp);
+    // apps.push(newApp);
+    const newApp = await app.save(); //  Save the new app to the database
     res.status(200).send(newApp);
 })
 
-app.put("/api/apps/:id", upload.single("image"), (req, res) =>{
+app.put("/api/apps/:id", upload.single("image"), async (req, res) =>{
+    const isValidEdit = validateApp(req.body);
+
     console.log(`App ${req.params.id} is trying to be editied`);
     console.log (req.body)
 
-    const appItem = apps.find(app=>app._id === parseInt(req.params.id));
+    // const appItem = apps.find(app=>app._id === parseInt(req.params.id));
 
     if (!appItem) {
         res.status(404).send("The app you wanted to edit is unavailable");
         return;
     }
-
-    const isValidEdit = validateApp(req.body);
 
     if (isValidEdit.error) {
         console.log("Invalid info when editing")
@@ -207,41 +252,65 @@ app.put("/api/apps/:id", upload.single("image"), (req, res) =>{
         return;
     }
 
-    appItem.name = req.body.name;
-    appItem.company = req.body.company;
-    appItem.industry = req.body.industry;
-    appItem.rating = Number(req.body.rating);
-    appItem.rating_count = Number(req.body.rating_count);
-    appItem.developer = req.body.developer;
-    appItem.note = req.body.note;
-    appItem.app_store_url = req.body.app_store_url;
-    appItem.website_url = req.body.website_url;
-
-    if (req.file) {
-        appItem.image = req.file.filename
+    let fieldsToUpdate = {
+        name: req.body.name,
+        company: req.body.company,
+        industry: req.body.industry,
+        rating:req.body.rating,
+        rating_count: req.body.rating_count,
+        developer: req.body.developer,
+        note: req.body.note,
+        app_store_url: req.body.app_store_url,
+        website_url: req.body.website_url,
     }
 
-    res.status(200).send(appItem);
+    // appItem.name = req.body.name;
+    // appItem.company = req.body.company;
+    // appItem.industry = req.body.industry;
+    // appItem.rating = Number(req.body.rating);
+    // appItem.rating_count = Number(req.body.rating_count);
+    // appItem.developer = req.body.developer;
+    // appItem.note = req.body.note;
+    // appItem.app_store_url = req.body.app_store_url;
+    // appItem.website_url = req.body.website_url;
+
+    if (req.file) {
+        // appItem.image = req.file.filename
+        fieldsToUpdate.image = req.file.filename;
+    }
+
+    const findAppToUpdate = await App.updateOne(
+        console.log("Updating App in Database"),
+        {_id: req.params.id}, //  update the house with the proivded ID through paramteter
+        fieldsToUpdate //  update that house with these fields
+    );
+
+    const updatedApp = await App.findOne ({_id: req.params.id});
+
+    res.status(200).send(updatedApp);
 
 
 
 })
 
-app.delete ("/api/apps/:id", (req, res) => {
-   const appItem = apps.find((app)=>app._id === parseInt(req.params.id));
+app.delete ("/api/apps/:id", async (req, res) => {
+    console.log(`App ${req.params.id} is trying to be deleted`);
+    const appItem = await App.findOneAndDelete({_id: req.params.id});
+//    const appItem = apps.find((app)=>app._id === parseInt(req.params.id));
 
    if (!appItem) {
     res.status(404).send("Can't find the app to delete")
     return;
    }
 
-   const index = apps.indexOf(appItem);
-   apps.splice(index, 1);
+//    const index = apps.indexOf(appItem);
+//    apps.splice(index, 1);
    res.status(200).send(appItem);
 
 })
 
 const validateApp = (app) => {
+    console.log("Validating App:", app);
     const schema = Joi.object ({
             _id: Joi.allow(""),
             name: Joi.string().min(1).required(),
