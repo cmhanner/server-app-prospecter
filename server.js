@@ -21,7 +21,7 @@ const upload = multer({ storage: storage });
 
 mongoose 
     .connect(
-        "mongodb+srv://chanceforcode_db_user:ChanceDatabaseeePassword@app-prospecter.jt7rd5x.mongodb.net/"
+        process.env.MONGODB_URI
     )
     .then ( () => {
         console.log("Conneceted to MongoDB");
