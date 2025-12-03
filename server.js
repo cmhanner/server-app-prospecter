@@ -177,9 +177,20 @@ app.get("/api/apps/", async (req, res) => {
 //  To get a Single App
 app.get("/api/apps/:id", async (req, res)=>{
     console.log(`In Get Request for single App ${req.params.id}`);
-    // const appItem = apps.find((app)=>app._id === parseInt(req.params.id));
-    const appItem = await App.findOne({_id: id }) //  Retrieve a single app by its ID from the database
-    res.send(appItem);
+  
+    try {
+        const appItem = await App.findById(req.params.id); //  Retrieve a single app by its ID from the database
+
+        if (!appItem) {
+            return res.status(404).send("The app with the given ID was not found.");
+        }
+    
+   
+        res.send(appItem);
+    } catch (error) {
+        console.error("Error fetching single app:", error);
+        res.status(500).send("Invalid app id");
+    }
 });
 
 app.post("/api/apps", upload.single("image"), async (req, res) => {
@@ -240,63 +251,55 @@ app.post("/api/apps", upload.single("image"), async (req, res) => {
 })
 
 app.put("/api/apps/:id", upload.single("image"), async (req, res) =>{
-    const isValidEdit = validateApp(req.body);
+  console.log(`App ${req.params.id} is trying to be edited`);
+  console.log("Body:", req.body);
+  console.log("File:", req.file);
 
-    console.log(`App ${req.params.id} is trying to be editied`);
-    console.log (req.body)
+  const isValidEdit = validateApp(req.body);
 
-    // const appItem = apps.find(app=>app._id === parseInt(req.params.id));
+  if (isValidEdit.error) {
+    console.log("Invalid info when editing");
+    return res.status(400).send(isValidEdit.error.details[0].message);
+  }
 
-    if (!appItem) {
-        res.status(404).send("The app you wanted to edit is unavailable");
-        return;
-    }
+  // Build the fields we want to update
+  let fieldsToUpdate = {
+    name: req.body.name,
+    company: req.body.company,
+    industry: req.body.industry,
+    rating: req.body.rating,
+    rating_count: req.body.rating_count,
+    developer: req.body.developer,
+    note: req.body.note,
+    app_store_url: req.body.app_store_url,
+    website_url: req.body.website_url,
+  };
 
-    if (isValidEdit.error) {
-        console.log("Invalid info when editing")
-        res.status(400).send(isValidEdit.error.details[0].message)
-        return;
-    }
+  if (req.file) {
+    fieldsToUpdate.image = req.file.filename;
+  }
 
-    let fieldsToUpdate = {
-        name: req.body.name,
-        company: req.body.company,
-        industry: req.body.industry,
-        rating:req.body.rating,
-        rating_count: req.body.rating_count,
-        developer: req.body.developer,
-        note: req.body.note,
-        app_store_url: req.body.app_store_url,
-        website_url: req.body.website_url,
-    }
+  try {
+    console.log("Updating App in Database");
 
-    // appItem.name = req.body.name;
-    // appItem.company = req.body.company;
-    // appItem.industry = req.body.industry;
-    // appItem.rating = Number(req.body.rating);
-    // appItem.rating_count = Number(req.body.rating_count);
-    // appItem.developer = req.body.developer;
-    // appItem.note = req.body.note;
-    // appItem.app_store_url = req.body.app_store_url;
-    // appItem.website_url = req.body.website_url;
-
-    if (req.file) {
-        // appItem.image = req.file.filename
-        fieldsToUpdate.image = req.file.filename;
-    }
-
-    const findAppToUpdate = await App.updateOne(
-        console.log("Updating App in Database"),
-        {_id: req.params.id}, //  update the house with the proivded ID through paramteter
-        fieldsToUpdate //  update that house with these fields
+    const updatedApp = await App.findByIdAndUpdate(
+      req.params.id,
+      fieldsToUpdate,
+      {
+        new: true,          // return the updated doc
+        runValidators: true // apply schema validation
+      }
     );
 
-    const updatedApp = await App.findOne ({_id: req.params.id});
+    if (!updatedApp) {
+      return res.status(404).send("The app you wanted to edit is unavailable");
+    }
 
     res.status(200).send(updatedApp);
-
-
-
+  } catch (err) {
+    console.error("Error updating app:", err);
+    res.status(500).send("Failed to update app");
+  }
 })
 
 app.delete ("/api/apps/:id", async (req, res) => {
